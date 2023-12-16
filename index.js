@@ -35,7 +35,7 @@ io.on("connection", (socket) => {
     console.log(userId, "uid");
     addUser(userId, socket.id);
     io.emit("getUsers", users);
-    // console.log(users, "usrs");
+    console.log(users, "usrs");
   });
 
   // get message from user, send it to destination
@@ -45,8 +45,8 @@ io.on("connection", (socket) => {
     const receiver = getUser(messageDetails?.receiverId);
     console.log(sender, receiver, "sr");
     console.log(messageDetails, "msg details");
-    io.to(receiver?.socketId).emit("getMessage", messageDetails);
     io.to(sender?.socketId).emit("getMessage", messageDetails);
+    io.to(receiver?.socketId).emit("getMessage", messageDetails);
   });
 
   socket.on("disconnect", () => {
