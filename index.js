@@ -40,15 +40,39 @@ io.on("connection", (socket) => {
 
   // get message from user, send it to destination
   socket.on("sendMessage", (messageDetails) => {
-    console.log(messageDetails?.receiverId);
     const sender = getUser(messageDetails?.senderId);
     const receiver = getUser(messageDetails?.receiverId);
-    console.log(sender, receiver, "sr");
-    console.log(messageDetails, "msg details");
     io.to(sender?.socketId).emit("getMessage", messageDetails);
     io.to(receiver?.socketId).emit("getMessage", messageDetails);
   });
 
+  // REALTIME AUDIO AND VIDEO CALL *************************************
+  // Receive a call from caller and send it to calee
+  socket.on("call", (data) => {
+    // send call to receiver(by using callerId/receiverId) to find his socketId first
+    const calleeSocketId = getUser(data.calleeId)?.socketId;
+    io.to(calleeSocketId).emit("newCall", data);
+  });
+
+  // Receiver/calee picks the call
+  // Connection is established
+  socket.on("answerCall", (data) => {
+    const callerSocketId = getUser(data.callerId).socketId;
+
+    // Send callAnswered event down here
+    console.log(data, "data after answering call");
+    io.to(callerSocketId).emit("callAnswered", data);
+  });
+
+  // Handle onICECandidate event down here ----
+  socket.on("iceCandidate", (data) => {
+    console.log(data, "ice candidate data");
+    const receiverSocketId = getUser(data.calleeId)?.socketId;
+    console.log(data.callerId, receiverSocketId);
+    io.to(receiverSocketId).emit("ICEcandidate", data);
+  });
+
+  // on disconnect event
   socket.on("disconnect", () => {
     removeUser(socket.id);
     io.emit("getUsers", users);
